@@ -32,7 +32,13 @@ Module.register("MMM-Crypto", {
         widgetChartOnly: false,
         widgetNoTimeScale: false,
         widgetIsTransparent: true,
-        widgetLocale: "en"
+        widgetLocale: "en",
+        // NEW: Multiple crypto support and chart control
+        widgetType: "mini-symbol-overview", // "mini-symbol-overview", "symbol-overview", "market-quotes"
+        multipleSymbols: false, // Enable multiple cryptocurrencies in one widget
+        cryptoSymbols: ["BITSTAMP:BTCUSD", "BINANCE:ETHUSD", "BINANCE:ADAUSD"], // Multiple symbols
+        showChart: true, // Enable/disable chart display
+        widgetHeight: "220" // Height for the widget
     },
 
     // Required version of MagicMirror
@@ -131,6 +137,16 @@ Module.register("MMM-Crypto", {
         wrapper.className = "tradingview-widget-container";
         wrapper.style.maxWidth = this.config.maxWidth;
 
+        // Determine widget type and configuration
+        if (this.config.multipleSymbols && this.config.cryptoSymbols.length > 1) {
+            return this.createMultiSymbolWidget(wrapper);
+        } else {
+            return this.createSingleSymbolWidget(wrapper);
+        }
+    },
+
+    // Create single symbol widget (mini-symbol-overview)
+    createSingleSymbolWidget: function(wrapper) {
         // Create the widget container
         const widgetContainer = document.createElement("div");
         widgetContainer.className = "tradingview-widget-container__widget";
@@ -147,7 +163,7 @@ Module.register("MMM-Crypto", {
         
         const bitcoinText = document.createElement("span");
         bitcoinText.className = "blue-text";
-        bitcoinText.textContent = "Bitcoin price";
+        bitcoinText.textContent = "Crypto price";
         copyrightLink.appendChild(bitcoinText);
         
         const trademarkText = document.createElement("span");
@@ -164,10 +180,10 @@ Module.register("MMM-Crypto", {
         script.src = "https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js";
         script.async = true;
         
-        // Use your exact widget configuration
+        // Single symbol configuration
         const widgetConfig = {
             "symbol": this.config.widgetSymbol || "BITSTAMP:BTCUSD",
-            "chartOnly": this.config.widgetChartOnly || false,
+            "chartOnly": !this.config.showChart, // Invert because chartOnly hides other info
             "dateRange": this.config.widgetDateRange || "1D",
             "noTimeScale": this.config.widgetNoTimeScale || false,
             "colorTheme": this.config.widgetTheme || "dark",
@@ -175,8 +191,104 @@ Module.register("MMM-Crypto", {
             "locale": this.config.widgetLocale || "en",
             "width": "100%",
             "autosize": true,
-            "height": "100%"
+            "height": this.config.widgetHeight || "220"
         };
+        
+        script.innerHTML = JSON.stringify(widgetConfig);
+        wrapper.appendChild(script);
+
+        return wrapper;
+    },
+
+    // Create multiple symbols widget (symbol-overview or market-quotes)
+    createMultiSymbolWidget: function(wrapper) {
+        // Create the widget container
+        const widgetContainer = document.createElement("div");
+        widgetContainer.className = "tradingview-widget-container__widget";
+        wrapper.appendChild(widgetContainer);
+
+        // Create the copyright container
+        const copyrightDiv = document.createElement("div");
+        copyrightDiv.className = "tradingview-widget-copyright";
+        
+        const copyrightLink = document.createElement("a");
+        copyrightLink.href = "https://www.tradingview.com/";
+        copyrightLink.rel = "noopener nofollow";
+        copyrightLink.target = "_blank";
+        
+        const bitcoinText = document.createElement("span");
+        bitcoinText.className = "blue-text";
+        bitcoinText.textContent = "Crypto prices";
+        copyrightLink.appendChild(bitcoinText);
+        
+        const trademarkText = document.createElement("span");
+        trademarkText.className = "trademark";
+        trademarkText.textContent = " by TradingView";
+        
+        copyrightDiv.appendChild(copyrightLink);
+        copyrightDiv.appendChild(trademarkText);
+        wrapper.appendChild(copyrightDiv);
+
+        // Create and configure the script for multiple symbols
+        const script = document.createElement("script");
+        script.type = "text/javascript";
+        script.async = true;
+
+        let widgetConfig;
+        
+        if (this.config.showChart) {
+            // Use symbol-overview for charts with multiple symbols
+            script.src = "https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js";
+            
+            // Format symbols for symbol-overview widget
+            const formattedSymbols = this.config.cryptoSymbols.map(symbol => [
+                symbol.split(':')[1] || symbol, // Display name
+                symbol // Full symbol
+            ]);
+
+            widgetConfig = {
+                "symbols": formattedSymbols,
+                "chartOnly": false,
+                "width": "100%",
+                "height": this.config.widgetHeight || "400",
+                "locale": this.config.widgetLocale || "en",
+                "colorTheme": this.config.widgetTheme || "dark",
+                "autosize": true,
+                "showVolume": false,
+                "showMA": false,
+                "hideDateRanges": false,
+                "hideMarketStatus": false,
+                "hideSymbolLogo": false,
+                "scalePosition": "right",
+                "scaleMode": "Normal",
+                "fontFamily": "-apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif",
+                "fontSize": "10",
+                "noTimeScale": this.config.widgetNoTimeScale || false,
+                "valuesTracking": "1",
+                "changeMode": "price-and-percent",
+                "chartType": "area"
+            };
+        } else {
+            // Use market-quotes for price-only display
+            script.src = "https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js";
+            
+            widgetConfig = {
+                "width": "100%",
+                "height": this.config.widgetHeight || "300",
+                "symbolsGroups": [
+                    {
+                        "name": "Cryptocurrencies",
+                        "symbols": this.config.cryptoSymbols.map(symbol => ({
+                            "name": symbol
+                        }))
+                    }
+                ],
+                "showSymbolLogo": true,
+                "colorTheme": this.config.widgetTheme || "dark",
+                "isTransparent": this.config.widgetIsTransparent || true,
+                "locale": this.config.widgetLocale || "en"
+            };
+        }
         
         script.innerHTML = JSON.stringify(widgetConfig);
         wrapper.appendChild(script);

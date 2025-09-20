@@ -224,3 +224,91 @@ module.exports = {
  * - BITFINEX:BTCUSD
  * - And many more...
  */
+
+// Example 1: Single Crypto with Chart (Default)
+const singleCryptoWithChart = {
+    module: "MMM-Crypto",
+    position: "top_right",
+    config: {
+        showTradingViewWidget: true,
+        widgetSymbol: "BITSTAMP:BTCUSD",
+        widgetTheme: "dark",
+        showChart: true, // Show chart
+        multipleSymbols: false,
+        maxWidth: "400px"
+    }
+};
+
+// Example 2: Single Crypto WITHOUT Chart (Price Only)
+const singleCryptoPriceOnly = {
+    module: "MMM-Crypto",
+    position: "top_left",
+    config: {
+        showTradingViewWidget: true,
+        widgetSymbol: "BINANCE:ETHUSD",
+        widgetTheme: "dark",
+        showChart: false, // Hide chart - price only
+        multipleSymbols: false,
+        maxWidth: "300px"
+    }
+};
+
+// Example 3: Multiple Cryptos with Charts
+const multipleCryptosWithCharts = {
+    module: "MMM-Crypto",
+    position: "middle_center",
+    config: {
+        showTradingViewWidget: true,
+        multipleSymbols: true, // Enable multiple symbols
+        cryptoSymbols: [
+            "BITSTAMP:BTCUSD",
+            "BINANCE:ETHUSD", 
+            "BINANCE:ADAUSD"
+        ],
+        showChart: true, // Show charts for all
+        widgetTheme: "dark",
+        widgetHeight: "500",
+        maxWidth: "600px"
+    }
+};
+
+// Example 4: Multiple Cryptos WITHOUT Charts (Price Table)
+const multipleCryptosPriceTable = {
+    module: "MMM-Crypto",
+    position: "bottom_right",
+    config: {
+        showTradingViewWidget: true,
+        multipleSymbols: true, // Enable multiple symbols
+        cryptoSymbols: [
+            "BITSTAMP:BTCUSD",
+            "BINANCE:ETHUSD",
+            "BINANCE:ADAUSD",
+            "BINANCE:SOLUSD",
+            "BINANCE:BNBUSD"
+        ],
+        showChart: false, // Hide charts - table only
+        widgetTheme: "dark",
+        widgetHeight: "300",
+        maxWidth: "400px"
+    }
+};
+
+// Example 5: Top 3 Cryptos with Custom Styling
+const top3CryptosCustom = {
+    module: "MMM-Crypto",
+    position: "bottom_center",
+    config: {
+        showTradingViewWidget: true,
+        multipleSymbols: true,
+        cryptoSymbols: [
+            "COINBASE:BTCUSD",   // Bitcoin
+            "COINBASE:ETHUSD",   // Ethereum  
+            "BINANCE:BNBUSD"     // Binance Coin
+        ],
+        showChart: true,
+        widgetTheme: "dark",
+        widgetHeight: "450",
+        widgetDateRange: "1W", // 1 week view
+        maxWidth: "700px"
+    }
+};
