@@ -2,28 +2,37 @@
  * Module: MMM-Crypto
  * 
  * By Marcus
- * A cryptocurrency price checker for Magic Mirror using TradingView data
+ * A cryptocurrency price checker for Magic Mirror with TradingView-style display
  */
 
 Module.register("MMM-Crypto", {
     // Default module config
     defaults: {
-        updateInterval: 30000, // Update every 30 seconds (TradingView allows more frequent updates)
+        updateInterval: 60000, // Update every minute
         animationSpeed: 1000,
-        symbols: ["BTCUSD", "ETHUSD", "ADAUSD", "SOLUSD", "DOGEUSD"], // TradingView symbols
-        exchange: "BINANCE", // Default exchange
+        symbols: ["BTCUSD", "ETHUSD", "ADAUSD", "SOLUSD", "DOGEUSD"], // TradingView-style symbols
+        vs_currency: "usd",
         showChange: true,
         showVolume: true,
         showHigh: false,
         showLow: false,
+        showMarketCap: false,
         maxWidth: "450px",
         colored: true,
         showIcon: true,
         showLastUpdate: true,
         decimalPlaces: 2,
-        useWebSocket: true, // Use WebSocket for real-time data
-        showExchange: false,
-        compactMode: false
+        showRank: false,
+        compactMode: false,
+        showTradingViewWidget: true, // Changed to true by default
+        widgetSymbol: "BITSTAMP:BTCUSD", // Default to your symbol
+        widgetTheme: "dark",
+        // Additional TradingView widget options
+        widgetDateRange: "1D", // 1D, 1W, 1M, 3M, 6M, YTD, 1Y, 5Y, ALL
+        widgetChartOnly: false,
+        widgetNoTimeScale: false,
+        widgetIsTransparent: true,
+        widgetLocale: "en"
     },
 
     // Required version of MagicMirror
@@ -36,10 +45,11 @@ Module.register("MMM-Crypto", {
         this.loaded = false;
         this.error = null;
         this.lastUpdate = null;
-        this.wsConnected = false;
         
-        // Schedule the first update
-        this.scheduleUpdate();
+        // Schedule the first update only if not using TradingView widget
+        if (!this.config.showTradingViewWidget) {
+            this.scheduleUpdate();
+        }
     },
 
     // Override dom generator
@@ -48,8 +58,14 @@ Module.register("MMM-Crypto", {
         wrapper.className = "crypto-wrapper";
         wrapper.style.maxWidth = this.config.maxWidth;
 
+        // Show TradingView widget if enabled (recommended mode)
+        if (this.config.showTradingViewWidget) {
+            return this.createTradingViewWidget();
+        }
+
+        // Legacy mode: show loading message for table view
         if (!this.loaded) {
-            wrapper.innerHTML = "Loading TradingView data...";
+            wrapper.innerHTML = "Loading cryptocurrency data...";
             wrapper.className = "dimmed light small";
             return wrapper;
         }
@@ -60,14 +76,13 @@ Module.register("MMM-Crypto", {
             return wrapper;
         }
 
-        // Create header
+        // Create header for table view
         const header = document.createElement("div");
         header.className = "crypto-header";
-        const wsStatus = this.wsConnected ? "🟢" : "🔴";
-        header.innerHTML = `<i class='fab fa-bitcoin'></i> Cryptocurrency Prices ${this.config.useWebSocket ? wsStatus : ''}`;
+        header.innerHTML = "<i class='fab fa-bitcoin'></i> Cryptocurrency Prices";
         wrapper.appendChild(header);
 
-        // Create table
+        // Create table for legacy mode
         const table = document.createElement("table");
         table.className = "crypto-table small";
 
@@ -82,7 +97,8 @@ Module.register("MMM-Crypto", {
         if (this.config.showVolume) headerHTML += '<th>Volume</th>';
         if (this.config.showHigh) headerHTML += '<th>High</th>';
         if (this.config.showLow) headerHTML += '<th>Low</th>';
-        if (this.config.showExchange) headerHTML += '<th>Exchange</th>';
+        if (this.config.showMarketCap) headerHTML += '<th>Market Cap</th>';
+        if (this.config.showRank) headerHTML += '<th>Rank</th>';
         
         headerRow.innerHTML = headerHTML;
         table.appendChild(headerRow);
@@ -99,12 +115,71 @@ Module.register("MMM-Crypto", {
 
         // Add last update time
         if (this.config.showLastUpdate && this.lastUpdate) {
-            const updateInfo = document.createElement("div");
-            updateInfo.className = "crypto-update dimmed xsmall";
-            const updateText = this.config.useWebSocket ? "Live data" : "Last updated: " + this.lastUpdate.toLocaleTimeString();
-            updateInfo.innerHTML = updateText;
-            wrapper.appendChild(updateInfo);
+            const updateDiv = document.createElement("div");
+            updateDiv.className = "crypto-update-time";
+            updateDiv.innerHTML = "Last updated: " + this.lastUpdate.toLocaleTimeString();
+            wrapper.appendChild(updateDiv);
         }
+
+        return wrapper;
+    },
+
+    // Create TradingView widget
+    createTradingViewWidget: function() {
+        // Create the main container
+        const wrapper = document.createElement("div");
+        wrapper.className = "tradingview-widget-container";
+        wrapper.style.maxWidth = this.config.maxWidth;
+
+        // Create the widget container
+        const widgetContainer = document.createElement("div");
+        widgetContainer.className = "tradingview-widget-container__widget";
+        wrapper.appendChild(widgetContainer);
+
+        // Create the copyright container
+        const copyrightDiv = document.createElement("div");
+        copyrightDiv.className = "tradingview-widget-copyright";
+        
+        const copyrightLink = document.createElement("a");
+        copyrightLink.href = "https://www.tradingview.com/symbols/BTCUSD/?exchange=BITSTAMP";
+        copyrightLink.rel = "noopener nofollow";
+        copyrightLink.target = "_blank";
+        
+        const bitcoinText = document.createElement("span");
+        bitcoinText.className = "blue-text";
+        bitcoinText.textContent = "Bitcoin price";
+        copyrightLink.appendChild(bitcoinText);
+        
+        const trademarkText = document.createElement("span");
+        trademarkText.className = "trademark";
+        trademarkText.textContent = " by TradingView";
+        
+        copyrightDiv.appendChild(copyrightLink);
+        copyrightDiv.appendChild(trademarkText);
+        wrapper.appendChild(copyrightDiv);
+
+        // Create and configure the script
+        const script = document.createElement("script");
+        script.type = "text/javascript";
+        script.src = "https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js";
+        script.async = true;
+        
+        // Use your exact widget configuration
+        const widgetConfig = {
+            "symbol": this.config.widgetSymbol || "BITSTAMP:BTCUSD",
+            "chartOnly": this.config.widgetChartOnly || false,
+            "dateRange": this.config.widgetDateRange || "1D",
+            "noTimeScale": this.config.widgetNoTimeScale || false,
+            "colorTheme": this.config.widgetTheme || "dark",
+            "isTransparent": this.config.widgetIsTransparent || true,
+            "locale": this.config.widgetLocale || "en",
+            "width": "100%",
+            "autosize": true,
+            "height": "100%"
+        };
+        
+        script.innerHTML = JSON.stringify(widgetConfig);
+        wrapper.appendChild(script);
 
         return wrapper;
     },
@@ -114,38 +189,34 @@ Module.register("MMM-Crypto", {
         const row = document.createElement("tr");
         row.className = "crypto-row";
 
-        // Symbol name and icon
+        // Name/Symbol cell
         const nameCell = document.createElement("td");
         nameCell.className = "crypto-name";
-        const coinName = this.getCoinName(symbol);
-        const iconUrl = this.getCoinIcon(symbol);
-        
-        if (this.config.showIcon && iconUrl) {
-            nameCell.innerHTML = `<img src="${iconUrl}" class="crypto-icon"> ${this.config.compactMode ? symbol.replace('USD', '') : coinName}`;
+        const coinName = data.name;
+
+        if (this.config.showIcon && data.image) {
+            nameCell.innerHTML = `<img src="${data.image}" class="crypto-icon"> ${this.config.compactMode ? data.symbol : coinName}`;
         } else {
-            nameCell.innerHTML = this.config.compactMode ? symbol.replace('USD', '') : coinName;
+            nameCell.innerHTML = this.config.compactMode ? data.symbol : coinName;
         }
         row.appendChild(nameCell);
 
-        // Price
+        // Price cell
         const priceCell = document.createElement("td");
         priceCell.className = "crypto-price";
-        const price = this.formatCurrency(data.price || data.lp);
+        const price = this.formatCurrency(data.price);
         priceCell.innerHTML = price;
         row.appendChild(priceCell);
 
-        // Change
+        // Change cell
         if (this.config.showChange) {
             const changeCell = document.createElement("td");
             changeCell.className = "crypto-change";
-            const change = data.change || data.ch;
-            const changePercent = data.change_percent || data.chp;
+            const changePercent = data.change_percent;
             
             let changeText = "";
             if (changePercent !== undefined) {
                 changeText = (changePercent >= 0 ? "+" : "") + changePercent.toFixed(2) + "%";
-            } else if (change !== undefined) {
-                changeText = (change >= 0 ? "+" : "") + change.toFixed(this.config.decimalPlaces);
             }
             
             if (this.config.colored && changePercent !== undefined) {
@@ -155,92 +226,53 @@ Module.register("MMM-Crypto", {
             row.appendChild(changeCell);
         }
 
-        // Volume
+        // Volume cell
         if (this.config.showVolume) {
             const volumeCell = document.createElement("td");
             volumeCell.className = "crypto-volume";
-            const volume = data.volume || data.volume_24h;
-            volumeCell.innerHTML = volume ? this.formatLargeNumber(volume) : "N/A";
+            volumeCell.innerHTML = data.volume ? this.formatLargeNumber(data.volume) : "N/A";
             row.appendChild(volumeCell);
         }
 
-        // High
+        // High cell
         if (this.config.showHigh) {
             const highCell = document.createElement("td");
             highCell.className = "crypto-high";
-            const high = data.high || data.high_24h;
-            highCell.innerHTML = high ? this.formatCurrency(high) : "N/A";
+            highCell.innerHTML = data.high_24h ? this.formatCurrency(data.high_24h) : "N/A";
             row.appendChild(highCell);
         }
 
-        // Low
+        // Low cell
         if (this.config.showLow) {
             const lowCell = document.createElement("td");
             lowCell.className = "crypto-low";
-            const low = data.low || data.low_24h;
-            lowCell.innerHTML = low ? this.formatCurrency(low) : "N/A";
+            lowCell.innerHTML = data.low_24h ? this.formatCurrency(data.low_24h) : "N/A";
             row.appendChild(lowCell);
         }
 
-        // Exchange
-        if (this.config.showExchange) {
-            const exchangeCell = document.createElement("td");
-            exchangeCell.className = "crypto-exchange";
-            exchangeCell.innerHTML = this.config.exchange;
-            row.appendChild(exchangeCell);
+        // Market cap cell
+        if (this.config.showMarketCap) {
+            const mcapCell = document.createElement("td");
+            mcapCell.className = "crypto-mcap";
+            mcapCell.innerHTML = data.market_cap ? this.formatLargeNumber(data.market_cap) : "N/A";
+            row.appendChild(mcapCell);
+        }
+
+        // Rank cell
+        if (this.config.showRank) {
+            const rankCell = document.createElement("td");
+            rankCell.className = "crypto-rank";
+            rankCell.innerHTML = data.market_cap_rank ? "#" + data.market_cap_rank : "N/A";
+            row.appendChild(rankCell);
         }
 
         return row;
     },
 
-    // Get coin name from symbol
-    getCoinName: function(symbol) {
-        const coinNames = {
-            "BTCUSD": "Bitcoin",
-            "ETHUSD": "Ethereum", 
-            "ADAUSD": "Cardano",
-            "SOLUSD": "Solana",
-            "DOGEUSD": "Dogecoin",
-            "BNBUSD": "Binance Coin",
-            "XRPUSD": "XRP",
-            "MATICUSD": "Polygon",
-            "DOTUSD": "Polkadot",
-            "AVAXUSD": "Avalanche",
-            "LINKUSD": "Chainlink",
-            "LTCUSD": "Litecoin",
-            "BCHUSD": "Bitcoin Cash",
-            "XLMUSD": "Stellar",
-            "ATOMUSD": "Cosmos"
-        };
-        return coinNames[symbol] || symbol.replace('USD', '');
-    },
-
-    // Get coin icon URL
-    getCoinIcon: function(symbol) {
-        const coinIcons = {
-            "BTCUSD": "https://cryptologos.cc/logos/bitcoin-btc-logo.png",
-            "ETHUSD": "https://cryptologos.cc/logos/ethereum-eth-logo.png",
-            "ADAUSD": "https://cryptologos.cc/logos/cardano-ada-logo.png",
-            "SOLUSD": "https://cryptologos.cc/logos/solana-sol-logo.png",
-            "DOGEUSD": "https://cryptologos.cc/logos/dogecoin-doge-logo.png",
-            "BNBUSD": "https://cryptologos.cc/logos/bnb-bnb-logo.png",
-            "XRPUSD": "https://cryptologos.cc/logos/xrp-xrp-logo.png",
-            "MATICUSD": "https://cryptologos.cc/logos/polygon-matic-logo.png",
-            "DOTUSD": "https://cryptologos.cc/logos/polkadot-new-dot-logo.png",
-            "AVAXUSD": "https://cryptologos.cc/logos/avalanche-avax-logo.png",
-            "LINKUSD": "https://cryptologos.cc/logos/chainlink-link-logo.png",
-            "LTCUSD": "https://cryptologos.cc/logos/litecoin-ltc-logo.png",
-            "BCHUSD": "https://cryptologos.cc/logos/bitcoin-cash-bch-logo.png",
-            "XLMUSD": "https://cryptologos.cc/logos/stellar-xlm-logo.png",
-            "ATOMUSD": "https://cryptologos.cc/logos/cosmos-atom-logo.png"
-        };
-        return coinIcons[symbol];
-    },
-
     // Format currency values
     formatCurrency: function(value) {
         if (!value) return "N/A";
-        
+
         if (value < 0.01) {
             return "$" + value.toFixed(6);
         } else if (value < 1) {
@@ -253,10 +285,10 @@ Module.register("MMM-Crypto", {
         }
     },
 
-    // Format large numbers (volume)
+    // Format large numbers
     formatLargeNumber: function(value) {
         if (!value) return "N/A";
-        
+
         if (value >= 1e12) {
             return "$" + (value / 1e12).toFixed(2) + "T";
         } else if (value >= 1e9) {
@@ -270,7 +302,7 @@ Module.register("MMM-Crypto", {
         }
     },
 
-    // Get styles
+    // Get additional CSS files
     getStyles: function() {
         return ["MMM-Crypto.css", "font-awesome.css"];
     },
@@ -278,35 +310,19 @@ Module.register("MMM-Crypto", {
     // Schedule next update
     scheduleUpdate: function() {
         const self = this;
-        
-        if (this.config.useWebSocket) {
-            // Initialize WebSocket connection
-            this.initWebSocket();
-        } else {
-            // Use polling for REST API
-            setInterval(function() {
-                self.updateCryptoData();
-            }, this.config.updateInterval);
-        }
+        setInterval(function() {
+            self.updateCryptoData();
+        }, this.config.updateInterval);
 
         // Initial update
         this.updateCryptoData();
-    },
-
-    // Initialize WebSocket connection
-    initWebSocket: function() {
-        this.sendSocketNotification("INIT_WEBSOCKET", {
-            symbols: this.config.symbols,
-            exchange: this.config.exchange
-        });
     },
 
     // Update crypto data
     updateCryptoData: function() {
         this.sendSocketNotification("GET_CRYPTO_DATA", {
             symbols: this.config.symbols,
-            exchange: this.config.exchange,
-            useWebSocket: this.config.useWebSocket
+            vs_currency: this.config.vs_currency
         });
     },
 
@@ -322,19 +338,9 @@ Module.register("MMM-Crypto", {
             this.error = payload;
             this.loaded = true;
             this.updateDom(this.config.animationSpeed);
-        } else if (notification === "WEBSOCKET_CONNECTED") {
-            this.wsConnected = true;
-            this.updateDom(this.config.animationSpeed);
-        } else if (notification === "WEBSOCKET_DISCONNECTED") {
-            this.wsConnected = false;
-            this.updateDom(this.config.animationSpeed);
-        } else if (notification === "REALTIME_DATA") {
-            // Update specific symbol data
-            if (payload.symbol && payload.data) {
-                this.cryptoData[payload.symbol] = payload.data;
-                this.lastUpdate = new Date();
-                this.updateDom(this.config.animationSpeed);
-            }
+        } else if (notification === "TRADINGVIEW_MODE") {
+            // TradingView mode - no action needed
+            Log.info("MMM-Crypto: " + payload.message);
         }
     }
 });

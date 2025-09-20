@@ -1,23 +1,22 @@
-/* TradingView Configuration Examples for MMM-Crypto
+/* Configuration Examples for MMM-Crypto
  * Copy and paste these configurations into your MagicMirror config/config.js file
  * within the modules array
  */
 
-// Example 1: Basic TradingView configuration with WebSocket
+// Example 1: Basic configuration with TradingView-style symbols
 const basicConfig = {
     module: "MMM-Crypto",
     position: "top_right",
     config: {
         symbols: ["BTCUSD", "ETHUSD", "ADAUSD"],
-        exchange: "BINANCE",
-        updateInterval: 30000, // 30 seconds
-        useWebSocket: true, // Real-time data
+        updateInterval: 60000, // 1 minute
         showChange: true,
-        colored: true
+        colored: true,
+        showIcon: true
     }
 };
 
-// Example 2: Advanced configuration with all TradingView features
+// Example 2: Advanced configuration with all features
 const advancedConfig = {
     module: "MMM-Crypto",
     position: "top_right",
@@ -34,14 +33,13 @@ const advancedConfig = {
             "AVAXUSD",   // Avalanche
             "LINKUSD"    // Chainlink
         ],
-        exchange: "BINANCE", // BINANCE, COINBASE, KRAKEN, BITFINEX, etc.
-        updateInterval: 15000, // 15 seconds for REST API fallback
-        useWebSocket: true, // Enable real-time WebSocket data
+        updateInterval: 60000, // 1 minute
         showChange: true,
         showVolume: true,
         showHigh: true,
         showLow: true,
-        showExchange: false,
+        showMarketCap: true,
+        showRank: true,
         maxWidth: "500px",
         colored: true,
         showIcon: true,
@@ -51,14 +49,68 @@ const advancedConfig = {
     }
 };
 
-// Example 3: Compact mode for smaller displays
+// Example 3: TradingView Widget Configuration (RECOMMENDED)
+const tradingViewWidgetConfig = {
+    module: "MMM-Crypto",
+    position: "middle_center",
+    config: {
+        showTradingViewWidget: true,
+        widgetSymbol: "BITSTAMP:BTCUSD", // Your preferred symbol
+        widgetTheme: "dark", // "dark" or "light"
+        widgetDateRange: "1D", // 1D, 1W, 1M, 3M, 6M, YTD, 1Y, 5Y, ALL
+        widgetChartOnly: false,
+        widgetNoTimeScale: false,
+        widgetIsTransparent: true,
+        widgetLocale: "en",
+        maxWidth: "600px"
+    }
+};
+
+// Example 4: Multiple TradingView Widgets (Different Symbols)
+const multipleTradingViewWidgets = [
+    {
+        module: "MMM-Crypto",
+        position: "top_left",
+        config: {
+            showTradingViewWidget: true,
+            widgetSymbol: "BITSTAMP:BTCUSD",
+            widgetTheme: "dark",
+            maxWidth: "400px"
+        }
+    },
+    {
+        module: "MMM-Crypto",
+        position: "top_right", 
+        config: {
+            showTradingViewWidget: true,
+            widgetSymbol: "BINANCE:ETHUSD",
+            widgetTheme: "dark",
+            maxWidth: "400px"
+        }
+    }
+];
+
+// Example 5: Chart-only TradingView Widget
+const chartOnlyConfig = {
+    module: "MMM-Crypto",
+    position: "bottom_center",
+    config: {
+        showTradingViewWidget: true,
+        widgetSymbol: "BITSTAMP:BTCUSD",
+        widgetTheme: "dark",
+        widgetChartOnly: true, // Shows only the chart, no additional info
+        widgetDateRange: "1W",
+        maxWidth: "500px"
+    }
+};
+
+// Example 4: Compact mode for smaller displays
 const compactConfig = {
     module: "MMM-Crypto",
     position: "bottom_right",
     config: {
         symbols: ["BTCUSD", "ETHUSD", "ADAUSD", "SOLUSD"],
-        exchange: "BINANCE",
-        useWebSocket: true,
+        updateInterval: 120000, // 2 minutes
         showChange: true,
         showVolume: false,
         showHigh: false,
@@ -71,30 +123,27 @@ const compactConfig = {
     }
 };
 
-// Example 4: Coinbase exchange configuration
-const coinbaseConfig = {
+// Example 5: Multiple instances - Price table + TradingView widget
+const priceTableConfig = {
     module: "MMM-Crypto",
     position: "top_left",
     config: {
-        symbols: ["BTCUSD", "ETHUSD"],
-        exchange: "COINBASE", // Coinbase Pro data
-        useWebSocket: false, // Use REST API only
-        updateInterval: 60000, // 1 minute
-        showExchange: true
+        symbols: ["BTCUSD", "ETHUSD", "ADAUSD"],
+        showChange: true,
+        showVolume: true,
+        compactMode: true,
+        maxWidth: "350px"
     }
 };
 
-// Example 5: Kraken exchange configuration
-const krakenConfig = {
-    module: "MMM-Crypto", 
-    position: "middle_center",
+const chartWidgetConfig = {
+    module: "MMM-Crypto",
+    position: "bottom_center",
     config: {
-        symbols: ["BTCUSD", "ETHUSD", "ADAUSD"],
-        exchange: "KRAKEN",
-        useWebSocket: true,
-        showVolume: true,
-        showHigh: true,
-        showLow: true
+        showTradingViewWidget: true,
+        widgetSymbol: "BINANCE:BTCUSD",
+        widgetTheme: "dark",
+        maxWidth: "500px"
     }
 };
 
@@ -117,8 +166,6 @@ const krakenConfig = {
  *         position: "top_right",
  *         config: {
  *             symbols: ["BTCUSD", "ETHUSD", "ADAUSD"],
- *             exchange: "BINANCE",
- *             useWebSocket: true,
  *             showChange: true,
  *             colored: true
  *         }
@@ -131,27 +178,49 @@ const krakenConfig = {
 module.exports = {
     basicConfig,
     advancedConfig,
+    tradingViewWidgetConfig,
     compactConfig,
-    coinbaseConfig,
-    krakenConfig
+    priceTableConfig,
+    chartWidgetConfig
 };
 
 /* 
- * POPULAR TRADINGVIEW SYMBOLS BY EXCHANGE:
+ * AVAILABLE SYMBOLS (mapped to CoinGecko data):
  * 
- * BINANCE:
- * - BTCUSD, ETHUSD, ADAUSD, SOLUSD, BNBUSD, XRPUSD, DOGEUSD
- * - MATICUSD, DOTUSD, AVAXUSD, LINKUSD, LTCUSD, BCHUSD, XLMUSD
+ * Major Cryptocurrencies:
+ * - BTCUSD (Bitcoin)
+ * - ETHUSD (Ethereum)
+ * - ADAUSD (Cardano)
+ * - SOLUSD (Solana)
+ * - BNBUSD (Binance Coin)
+ * - XRPUSD (XRP)
+ * - DOGEUSD (Dogecoin)
  * 
- * COINBASE:
- * - BTCUSD, ETHUSD, ADAUSD, SOLUSD, LINKUSD, LTCUSD, BCHUSD
- * - MATICUSD, DOTUSD, AVAXUSD, XLMUSD, ATOMUSD
+ * DeFi & Layer 2:
+ * - MATICUSD (Polygon)
+ * - LINKUSD (Chainlink)
+ * - AVAXUSD (Avalanche)
+ * - DOTUSD (Polkadot)
+ * - ATOMUSD (Cosmos)
+ * - UNIUSD (Uniswap)
  * 
- * KRAKEN:
- * - BTCUSD, ETHUSD, ADAUSD, SOLUSD, LINKUSD, LTCUSD, BCHUSD
- * - DOTUSD, AVAXUSD, XLMUSD, ATOMUSD
+ * Traditional Cryptos:
+ * - LTCUSD (Litecoin)
+ * - BCHUSD (Bitcoin Cash)
+ * - XLMUSD (Stellar)
+ * - ETCUSD (Ethereum Classic)
  * 
- * BITFINEX:
- * - BTCUSD, ETHUSD, ADAUSD, SOLUSD, LINKUSD, LTCUSD, BCHUSD
- * - MATICUSD, DOTUSD, AVAXUSD, XLMUSD
+ * Gaming & NFT:
+ * - MANAUSD (Decentraland)
+ * - SANDUSD (The Sandbox)
+ * - AXSUSD (Axie Infinity)
+ * - ENJUSD (Enjin Coin)
+ * - CHZUSD (Chiliz)
+ * 
+ * TradingView Widget Symbols (for showTradingViewWidget: true):
+ * - BINANCE:BTCUSD
+ * - COINBASE:BTCUSD
+ * - KRAKEN:XBTUSD
+ * - BITFINEX:BTCUSD
+ * - And many more...
  */
