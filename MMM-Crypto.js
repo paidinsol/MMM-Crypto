@@ -183,7 +183,7 @@ Module.register("MMM-Crypto", {
         // Single symbol configuration
         const widgetConfig = {
             "symbol": this.config.widgetSymbol || "BITSTAMP:BTCUSD",
-            "chartOnly": !this.config.showChart, // Invert because chartOnly hides other info
+            "chartOnly": this.config.widgetChartOnly || false,
             "dateRange": this.config.widgetDateRange || "1D",
             "noTimeScale": this.config.widgetNoTimeScale || false,
             "colorTheme": this.config.widgetTheme || "dark",
@@ -194,7 +194,8 @@ Module.register("MMM-Crypto", {
             "height": this.config.widgetHeight || "220"
         };
         
-        script.innerHTML = JSON.stringify(widgetConfig);
+        // FIX: Use textContent instead of innerHTML for script configuration
+        script.textContent = JSON.stringify(widgetConfig);
         wrapper.appendChild(script);
 
         return wrapper;
@@ -290,7 +291,8 @@ Module.register("MMM-Crypto", {
             };
         }
         
-        script.innerHTML = JSON.stringify(widgetConfig);
+        // FIX: Use textContent instead of innerHTML for script configuration
+        script.textContent = JSON.stringify(widgetConfig);
         wrapper.appendChild(script);
 
         return wrapper;
