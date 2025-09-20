@@ -1,0 +1,240 @@
+/* MMM-Crypto Styles - TradingView Edition */
+
+.crypto-wrapper {
+    text-align: left;
+}
+
+.crypto-header {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.crypto-header i {
+    color: #f7931a; /* Bitcoin orange */
+}
+
+.crypto-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.crypto-table th {
+    text-align: left;
+    padding: 5px 8px;
+    border-bottom: 1px solid #666;
+    font-weight: bold;
+    color: #aaa;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.crypto-table td {
+    padding: 5px 8px;
+    border-bottom: 1px solid #333;
+}
+
+.crypto-row:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    transition: background-color 0.2s ease;
+}
+
+.crypto-name {
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    min-width: 120px;
+}
+
+.crypto-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.crypto-price {
+    font-weight: bold;
+    color: #fff;
+    text-align: right;
+    font-family: 'Courier New', monospace;
+    min-width: 80px;
+}
+
+.crypto-change {
+    text-align: right;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    min-width: 70px;
+}
+
+.crypto-change.positive {
+    color: #00d4aa; /* TradingView green */
+}
+
+.crypto-change.negative {
+    color: #ff4976; /* TradingView red */
+}
+
+.crypto-volume,
+.crypto-high,
+.crypto-low {
+    text-align: right;
+    color: #ccc;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+}
+
+.crypto-exchange {
+    text-align: center;
+    color: #aaa;
+    font-weight: bold;
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+.crypto-update {
+    text-align: center;
+    margin-top: 10px;
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+/* WebSocket status indicators */
+.ws-status {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-left: 5px;
+}
+
+.ws-status.connected {
+    background-color: #00d4aa;
+    box-shadow: 0 0 5px #00d4aa;
+}
+
+.ws-status.disconnected {
+    background-color: #ff4976;
+    box-shadow: 0 0 5px #ff4976;
+}
+
+/* Compact mode styles */
+.crypto-wrapper.compact .crypto-table {
+    font-size: 12px;
+}
+
+.crypto-wrapper.compact .crypto-table th,
+.crypto-wrapper.compact .crypto-table td {
+    padding: 3px 5px;
+}
+
+.crypto-wrapper.compact .crypto-icon {
+    width: 16px;
+    height: 16px;
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+    .crypto-table {
+        font-size: 12px;
+    }
+    
+    .crypto-table th,
+    .crypto-table td {
+        padding: 3px 5px;
+    }
+    
+    .crypto-icon {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .crypto-name {
+        min-width: 80px;
+    }
+    
+    .crypto-price,
+    .crypto-change {
+        min-width: 60px;
+    }
+}
+
+@media (max-width: 400px) {
+    .crypto-table {
+        font-size: 11px;
+    }
+    
+    .crypto-header {
+        font-size: 14px;
+    }
+    
+    .crypto-name {
+        min-width: 60px;
+    }
+}
+
+/* Animation for real-time updates */
+.crypto-row {
+    transition: all 0.3s ease;
+}
+
+.crypto-price,
+.crypto-change {
+    transition: all 0.3s ease;
+}
+
+/* Pulse animation for live data */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+.crypto-row.updating {
+    animation: pulse 0.5s ease-in-out;
+}
+
+/* Price flash effects */
+.crypto-price.price-up {
+    background-color: rgba(0, 212, 170, 0.2);
+    transition: background-color 0.5s ease;
+}
+
+.crypto-price.price-down {
+    background-color: rgba(255, 73, 118, 0.2);
+    transition: background-color 0.5s ease;
+}
+
+/* Loading states */
+.crypto-loading {
+    opacity: 0.6;
+    position: relative;
+}
+
+.crypto-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}

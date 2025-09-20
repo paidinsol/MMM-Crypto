@@ -1,0 +1,41 @@
+{
+  "name": "mmm-crypto",
+  "version": "2.0.0",
+  "description": "A cryptocurrency price checker module for MagicMirror² using TradingView data",
+  "main": "MMM-Crypto.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "install": "npm install ws"
+  },
+  "keywords": [
+    "magicmirror",
+    "module",
+    "cryptocurrency",
+    "bitcoin",
+    "ethereum",
+    "crypto",
+    "prices",
+    "tradingview",
+    "realtime",
+    "websocket"
+  ],
+  "author": "Marcus",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/MMM-Crypto.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/MMM-Crypto/issues"
+  },
+  "homepage": "https://github.com/yourusername/MMM-Crypto#readme",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "dependencies": {
+    "ws": "^8.14.0"
+  },
+  "peerDependencies": {
+    "magicmirror": "^2.1.0"
+  }
+}
