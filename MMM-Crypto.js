@@ -36,7 +36,7 @@ Module.register("MMM-Crypto", {
         // NEW: Multiple crypto support and chart control
         widgetType: "mini-symbol-overview", // "mini-symbol-overview", "symbol-overview", "market-quotes"
         multipleSymbols: false, // Enable multiple cryptocurrencies in one widget
-        cryptoSymbols: ["BITSTAMP:BTCUSD", "BINANCE:ETHUSD", "BINANCE:ADAUSD"], // Multiple symbols
+        cryptoSymbols: ["BITSTAMP:BTCUSD", "BINANCE:ETHUSD", "BINANCE:SOLUSD"], // Multiple symbols
         showChart: true, // Enable/disable chart display
         widgetHeight: "220" // Height for the widget
     },
@@ -51,8 +51,8 @@ Module.register("MMM-Crypto", {
         this.loaded = false;
         this.error = null;
         this.lastUpdate = null;
-        
-        // Schedule the first update only if not using TradingView widget
+
+        // Only schedule updates for legacy mode (table view)
         if (!this.config.showTradingViewWidget) {
             this.scheduleUpdate();
         }
@@ -130,14 +130,13 @@ Module.register("MMM-Crypto", {
         return wrapper;
     },
 
-    // Create TradingView widget
+    // Create TradingView widget - SIMPLIFIED VERSION
     createTradingViewWidget: function() {
-        // Create the main container
         const wrapper = document.createElement("div");
         wrapper.className = "tradingview-widget-container";
         wrapper.style.maxWidth = this.config.maxWidth;
 
-        // Determine widget type and configuration
+        // Check if multiple symbols
         if (this.config.multipleSymbols && this.config.cryptoSymbols.length > 1) {
             return this.createMultiSymbolWidget(wrapper);
         } else {
@@ -145,157 +144,135 @@ Module.register("MMM-Crypto", {
         }
     },
 
-    // Create single symbol widget (mini-symbol-overview)
+    // SIMPLIFIED Single Symbol Widget
     createSingleSymbolWidget: function(wrapper) {
-        // Create the widget container
-        const widgetContainer = document.createElement("div");
-        widgetContainer.className = "tradingview-widget-container__widget";
-        wrapper.appendChild(widgetContainer);
+        // Create unique ID for this widget
+        const widgetId = "tradingview_widget_" + Math.random().toString(36).substr(2, 9);
+        
+        // Create widget div
+        const widgetDiv = document.createElement("div");
+        widgetDiv.id = widgetId;
+        widgetDiv.style.height = this.config.widgetHeight + "px";
+        wrapper.appendChild(widgetDiv);
 
-        // Create the copyright container
+        // Create copyright
         const copyrightDiv = document.createElement("div");
         copyrightDiv.className = "tradingview-widget-copyright";
-        
-        const copyrightLink = document.createElement("a");
-        copyrightLink.href = "https://www.tradingview.com/symbols/BTCUSD/?exchange=BITSTAMP";
-        copyrightLink.rel = "noopener nofollow";
-        copyrightLink.target = "_blank";
-        
-        const bitcoinText = document.createElement("span");
-        bitcoinText.className = "blue-text";
-        bitcoinText.textContent = "Crypto price";
-        copyrightLink.appendChild(bitcoinText);
-        
-        const trademarkText = document.createElement("span");
-        trademarkText.className = "trademark";
-        trademarkText.textContent = " by TradingView";
-        
-        copyrightDiv.appendChild(copyrightLink);
-        copyrightDiv.appendChild(trademarkText);
+        copyrightDiv.innerHTML = '<a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Track all markets on TradingView</span></a>';
         wrapper.appendChild(copyrightDiv);
 
-        // Create and configure the script
-        const script = document.createElement("script");
-        script.type = "text/javascript";
-        script.src = "https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js";
-        script.async = true;
-        
-        // Single symbol configuration
-        const widgetConfig = {
-            "symbol": this.config.widgetSymbol || "BITSTAMP:BTCUSD",
-            "chartOnly": this.config.widgetChartOnly || false,
-            "dateRange": this.config.widgetDateRange || "1D",
-            "noTimeScale": this.config.widgetNoTimeScale || false,
-            "colorTheme": this.config.widgetTheme || "dark",
-            "isTransparent": this.config.widgetIsTransparent || true,
-            "locale": this.config.widgetLocale || "en",
-            "width": "100%",
-            "autosize": true,
-            "height": this.config.widgetHeight || "220"
-        };
-        
-        // FIX: Use textContent instead of innerHTML for script configuration
-        script.textContent = JSON.stringify(widgetConfig);
-        wrapper.appendChild(script);
+        // Load TradingView widget after DOM is ready
+        setTimeout(() => {
+            if (typeof TradingView !== 'undefined') {
+                new TradingView.widget({
+                    "autosize": true,
+                    "symbol": this.config.widgetSymbol,
+                    "interval": "D",
+                    "timezone": "Etc/UTC",
+                    "theme": this.config.widgetTheme,
+                    "style": "1",
+                    "locale": this.config.widgetLocale,
+                    "toolbar_bg": "#f1f3f6",
+                    "enable_publishing": false,
+                    "allow_symbol_change": false,
+                    "container_id": widgetId
+                });
+            } else {
+                // Fallback: Load script and create widget
+                this.loadTradingViewScript(() => {
+                    new TradingView.widget({
+                        "autosize": true,
+                        "symbol": this.config.widgetSymbol,
+                        "interval": "D",
+                        "timezone": "Etc/UTC",
+                        "theme": this.config.widgetTheme,
+                        "style": "1",
+                        "locale": this.config.widgetLocale,
+                        "toolbar_bg": "#f1f3f6",
+                        "enable_publishing": false,
+                        "allow_symbol_change": false,
+                        "container_id": widgetId
+                    });
+                });
+            }
+        }, 100);
 
         return wrapper;
     },
 
-    // Create multiple symbols widget (symbol-overview or market-quotes)
+    // SIMPLIFIED Multi Symbol Widget
     createMultiSymbolWidget: function(wrapper) {
-        // Create the widget container
-        const widgetContainer = document.createElement("div");
-        widgetContainer.className = "tradingview-widget-container__widget";
-        wrapper.appendChild(widgetContainer);
-
-        // Create the copyright container
-        const copyrightDiv = document.createElement("div");
-        copyrightDiv.className = "tradingview-widget-copyright";
-        
-        const copyrightLink = document.createElement("a");
-        copyrightLink.href = "https://www.tradingview.com/";
-        copyrightLink.rel = "noopener nofollow";
-        copyrightLink.target = "_blank";
-        
-        const bitcoinText = document.createElement("span");
-        bitcoinText.className = "blue-text";
-        bitcoinText.textContent = "Crypto prices";
-        copyrightLink.appendChild(bitcoinText);
-        
-        const trademarkText = document.createElement("span");
-        trademarkText.className = "trademark";
-        trademarkText.textContent = " by TradingView";
-        
-        copyrightDiv.appendChild(copyrightLink);
-        copyrightDiv.appendChild(trademarkText);
-        wrapper.appendChild(copyrightDiv);
-
-        // Create and configure the script for multiple symbols
-        const script = document.createElement("script");
-        script.type = "text/javascript";
-        script.async = true;
-
-        let widgetConfig;
-        
-        if (this.config.showChart) {
-            // Use symbol-overview for charts with multiple symbols
-            script.src = "https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js";
+        // Create a simple list of mini widgets
+        this.config.cryptoSymbols.forEach((symbol, index) => {
+            const miniWrapper = document.createElement("div");
+            miniWrapper.className = "crypto-mini-widget";
+            miniWrapper.style.marginBottom = "10px";
             
-            // Format symbols for symbol-overview widget
-            const formattedSymbols = this.config.cryptoSymbols.map(symbol => [
-                symbol.split(':')[1] || symbol, // Display name
-                symbol // Full symbol
-            ]);
-
-            widgetConfig = {
-                "symbols": formattedSymbols,
-                "chartOnly": false,
-                "width": "100%",
-                "height": this.config.widgetHeight || "400",
-                "locale": this.config.widgetLocale || "en",
-                "colorTheme": this.config.widgetTheme || "dark",
-                "autosize": true,
-                "showVolume": false,
-                "showMA": false,
-                "hideDateRanges": false,
-                "hideMarketStatus": false,
-                "hideSymbolLogo": false,
-                "scalePosition": "right",
-                "scaleMode": "Normal",
-                "fontFamily": "-apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif",
-                "fontSize": "10",
-                "noTimeScale": this.config.widgetNoTimeScale || false,
-                "valuesTracking": "1",
-                "changeMode": "price-and-percent",
-                "chartType": "area"
-            };
-        } else {
-            // Use market-quotes for price-only display
-            script.src = "https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js";
+            // Create widget ID
+            const widgetId = "tradingview_mini_" + index + "_" + Math.random().toString(36).substr(2, 9);
             
-            widgetConfig = {
-                "width": "100%",
-                "height": this.config.widgetHeight || "300",
-                "symbolsGroups": [
-                    {
-                        "name": "Cryptocurrencies",
-                        "symbols": this.config.cryptoSymbols.map(symbol => ({
-                            "name": symbol
-                        }))
-                    }
-                ],
-                "showSymbolLogo": true,
-                "colorTheme": this.config.widgetTheme || "dark",
-                "isTransparent": this.config.widgetIsTransparent || true,
-                "locale": this.config.widgetLocale || "en"
-            };
-        }
-        
-        // FIX: Use textContent instead of innerHTML for script configuration
-        script.textContent = JSON.stringify(widgetConfig);
-        wrapper.appendChild(script);
+            // Create widget div
+            const widgetDiv = document.createElement("div");
+            widgetDiv.id = widgetId;
+            widgetDiv.style.height = "120px";
+            miniWrapper.appendChild(widgetDiv);
+
+            wrapper.appendChild(miniWrapper);
+
+            // Load mini widget
+            setTimeout(() => {
+                if (typeof TradingView !== 'undefined') {
+                    new TradingView.MiniWidget({
+                        "symbol": symbol,
+                        "width": "100%",
+                        "height": "120",
+                        "locale": this.config.widgetLocale,
+                        "dateRange": this.config.widgetDateRange,
+                        "colorTheme": this.config.widgetTheme,
+                        "trendLineColor": "rgba(41, 98, 255, 1)",
+                        "underLineColor": "rgba(41, 98, 255, 0.3)",
+                        "underLineBottomColor": "rgba(41, 98, 255, 0)",
+                        "isTransparent": this.config.widgetIsTransparent,
+                        "autosize": true,
+                        "container_id": widgetId
+                    });
+                } else {
+                    this.loadTradingViewScript(() => {
+                        new TradingView.MiniWidget({
+                            "symbol": symbol,
+                            "width": "100%",
+                            "height": "120",
+                            "locale": this.config.widgetLocale,
+                            "dateRange": this.config.widgetDateRange,
+                            "colorTheme": this.config.widgetTheme,
+                            "trendLineColor": "rgba(41, 98, 255, 1)",
+                            "underLineColor": "rgba(41, 98, 255, 0.3)",
+                            "underLineBottomColor": "rgba(41, 98, 255, 0)",
+                            "isTransparent": this.config.widgetIsTransparent,
+                            "autosize": true,
+                            "container_id": widgetId
+                        });
+                    });
+                }
+            }, 100 + (index * 50)); // Stagger loading
+        });
 
         return wrapper;
+    },
+
+    // Load TradingView script
+    loadTradingViewScript: function(callback) {
+        if (document.getElementById('tradingview-script')) {
+            callback();
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.id = 'tradingview-script';
+        script.type = 'text/javascript';
+        script.src = 'https://s3.tradingview.com/tv.js';
+        script.onload = callback;
+        document.head.appendChild(script);
     },
 
     // Create individual crypto row
@@ -303,40 +280,42 @@ Module.register("MMM-Crypto", {
         const row = document.createElement("tr");
         row.className = "crypto-row";
 
-        // Name/Symbol cell
-        const nameCell = document.createElement("td");
-        nameCell.className = "crypto-name";
-        const coinName = data.name;
-
+        // Symbol cell with icon
+        const symbolCell = document.createElement("td");
+        symbolCell.className = "crypto-symbol";
+        
         if (this.config.showIcon && data.image) {
-            nameCell.innerHTML = `<img src="${data.image}" class="crypto-icon"> ${this.config.compactMode ? data.symbol : coinName}`;
-        } else {
-            nameCell.innerHTML = this.config.compactMode ? data.symbol : coinName;
+            const icon = document.createElement("img");
+            icon.src = data.image;
+            icon.className = "crypto-icon";
+            symbolCell.appendChild(icon);
         }
-        row.appendChild(nameCell);
+        
+        const symbolSpan = document.createElement("span");
+        symbolSpan.className = "crypto-name";
+        symbolSpan.textContent = data.name || symbol;
+        symbolCell.appendChild(symbolSpan);
+        
+        row.appendChild(symbolCell);
 
         // Price cell
         const priceCell = document.createElement("td");
         priceCell.className = "crypto-price";
-        const price = this.formatCurrency(data.price);
-        priceCell.innerHTML = price;
+        priceCell.textContent = this.formatCurrency(data.current_price);
         row.appendChild(priceCell);
 
         // Change cell
         if (this.config.showChange) {
             const changeCell = document.createElement("td");
             changeCell.className = "crypto-change";
-            const changePercent = data.change_percent;
             
-            let changeText = "";
-            if (changePercent !== undefined) {
-                changeText = (changePercent >= 0 ? "+" : "") + changePercent.toFixed(2) + "%";
-            }
+            const changePercent = data.price_change_percentage_24h;
+            const changeClass = changePercent >= 0 ? "positive" : "negative";
+            changeCell.className += " " + changeClass;
             
-            if (this.config.colored && changePercent !== undefined) {
-                changeCell.className += changePercent >= 0 ? " positive" : " negative";
-            }
-            changeCell.innerHTML = changeText;
+            const changeText = (changePercent >= 0 ? "+" : "") + changePercent.toFixed(2) + "%";
+            changeCell.textContent = changeText;
+            
             row.appendChild(changeCell);
         }
 
@@ -344,7 +323,7 @@ Module.register("MMM-Crypto", {
         if (this.config.showVolume) {
             const volumeCell = document.createElement("td");
             volumeCell.className = "crypto-volume";
-            volumeCell.innerHTML = data.volume ? this.formatLargeNumber(data.volume) : "N/A";
+            volumeCell.textContent = this.formatLargeNumber(data.total_volume);
             row.appendChild(volumeCell);
         }
 
@@ -352,7 +331,7 @@ Module.register("MMM-Crypto", {
         if (this.config.showHigh) {
             const highCell = document.createElement("td");
             highCell.className = "crypto-high";
-            highCell.innerHTML = data.high_24h ? this.formatCurrency(data.high_24h) : "N/A";
+            highCell.textContent = this.formatCurrency(data.high_24h);
             row.appendChild(highCell);
         }
 
@@ -360,23 +339,23 @@ Module.register("MMM-Crypto", {
         if (this.config.showLow) {
             const lowCell = document.createElement("td");
             lowCell.className = "crypto-low";
-            lowCell.innerHTML = data.low_24h ? this.formatCurrency(data.low_24h) : "N/A";
+            lowCell.textContent = this.formatCurrency(data.low_24h);
             row.appendChild(lowCell);
         }
 
         // Market cap cell
         if (this.config.showMarketCap) {
-            const mcapCell = document.createElement("td");
-            mcapCell.className = "crypto-mcap";
-            mcapCell.innerHTML = data.market_cap ? this.formatLargeNumber(data.market_cap) : "N/A";
-            row.appendChild(mcapCell);
+            const marketCapCell = document.createElement("td");
+            marketCapCell.className = "crypto-market-cap";
+            marketCapCell.textContent = this.formatLargeNumber(data.market_cap);
+            row.appendChild(marketCapCell);
         }
 
         // Rank cell
         if (this.config.showRank) {
             const rankCell = document.createElement("td");
             rankCell.className = "crypto-rank";
-            rankCell.innerHTML = data.market_cap_rank ? "#" + data.market_cap_rank : "N/A";
+            rankCell.textContent = "#" + data.market_cap_rank;
             row.appendChild(rankCell);
         }
 
@@ -385,76 +364,70 @@ Module.register("MMM-Crypto", {
 
     // Format currency values
     formatCurrency: function(value) {
-        if (!value) return "N/A";
-
-        if (value < 0.01) {
-            return "$" + value.toFixed(6);
-        } else if (value < 1) {
-            return "$" + value.toFixed(4);
-        } else {
-            return "$" + value.toLocaleString(undefined, {
-                minimumFractionDigits: this.config.decimalPlaces,
-                maximumFractionDigits: this.config.decimalPlaces
-            });
-        }
+        if (value === null || value === undefined) return "N/A";
+        
+        const formatter = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: this.config.vs_currency.toUpperCase(),
+            minimumFractionDigits: this.config.decimalPlaces,
+            maximumFractionDigits: this.config.decimalPlaces
+        });
+        
+        return formatter.format(value);
     },
 
-    // Format large numbers
+    // Format large numbers (volume, market cap)
     formatLargeNumber: function(value) {
-        if (!value) return "N/A";
-
+        if (value === null || value === undefined) return "N/A";
+        
         if (value >= 1e12) {
-            return "$" + (value / 1e12).toFixed(2) + "T";
+            return (value / 1e12).toFixed(2) + "T";
         } else if (value >= 1e9) {
-            return "$" + (value / 1e9).toFixed(2) + "B";
+            return (value / 1e9).toFixed(2) + "B";
         } else if (value >= 1e6) {
-            return "$" + (value / 1e6).toFixed(2) + "M";
+            return (value / 1e6).toFixed(2) + "M";
         } else if (value >= 1e3) {
-            return "$" + (value / 1e3).toFixed(2) + "K";
-        } else {
-            return "$" + value.toLocaleString();
+            return (value / 1e3).toFixed(2) + "K";
         }
+        return value.toFixed(2);
     },
 
-    // Get additional CSS files
+    // Define required styles
     getStyles: function() {
-        return ["MMM-Crypto.css", "font-awesome.css"];
+        return ["MMM-Crypto.css"];
     },
 
     // Schedule next update
     scheduleUpdate: function() {
-        const self = this;
-        setInterval(function() {
-            self.updateCryptoData();
+        setInterval(() => {
+            this.updateCryptoData();
         }, this.config.updateInterval);
-
+        
         // Initial update
         this.updateCryptoData();
     },
 
     // Update crypto data
     updateCryptoData: function() {
-        this.sendSocketNotification("GET_CRYPTO_DATA", {
-            symbols: this.config.symbols,
-            vs_currency: this.config.vs_currency
-        });
+        this.sendSocketNotification("GET_CRYPTO_DATA", this.config);
     },
 
     // Handle notifications from node helper
     socketNotificationReceived: function(notification, payload) {
         if (notification === "CRYPTO_DATA") {
-            this.cryptoData = payload;
+            this.cryptoData = payload.data;
             this.loaded = true;
             this.error = null;
             this.lastUpdate = new Date();
             this.updateDom(this.config.animationSpeed);
         } else if (notification === "CRYPTO_ERROR") {
-            this.error = payload;
+            this.error = payload.error;
             this.loaded = true;
             this.updateDom(this.config.animationSpeed);
         } else if (notification === "TRADINGVIEW_MODE") {
-            // TradingView mode - no action needed
-            Log.info("MMM-Crypto: " + payload.message);
+            // TradingView mode - no server-side data needed
+            this.loaded = true;
+            this.updateDom(this.config.animationSpeed);
         }
     }
 });
