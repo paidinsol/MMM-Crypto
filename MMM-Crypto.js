@@ -12,7 +12,7 @@ Module.register("MMM-Crypto", {
         widgetTheme: "dark",
         maxWidth: "100%",
         height: "450px",
-        autoSwitchInterval: 40000, // 40 seconds in milliseconds
+        autoSwitchInterval: 20000, // 20 seconds in milliseconds
         symbols: [
             ["BINANCE:BTCUSD|1M"],
             ["BINANCE:SOLUSD|1M"],
