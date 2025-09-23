@@ -16,8 +16,8 @@ Module.register("MMM-Crypto", {
         symbols: [
             ["BINANCE:BTCUSD|1M"],
             ["BINANCE:SOLUSD|1M"],
-            ["OANDA:XAUUSD|1M"],
-            ["BINANCE:DOGEUSD|1M"]
+            ["INDEX:ETHUSD|1M"],
+            ["CAPITALCOM:DXY|1M"]
         ]
     },
 
