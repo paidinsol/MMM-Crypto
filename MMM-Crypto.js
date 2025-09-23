@@ -2,16 +2,21 @@
  * Module: MMM-Crypto
  * 
  * By Marcus
- * A cryptocurrency price checker for Magic Mirror with TradingView widget
+ * A cryptocurrency price checker for Magic Mirror with TradingView advanced chart widget
  */
 
 Module.register("MMM-Crypto", {
     // Default module config
     defaults: {
         showTradingViewWidget: true,
-        widgetSymbol: "BITSTAMP:BTCUSD",
         widgetTheme: "dark",
-        maxWidth: "450px"
+        maxWidth: "800px",
+        symbols: [
+            ["BINANCE:BTCUSD|1M"],
+            ["BINANCE:SOLUSD|1M"],
+            ["OANDA:XAUUSD|1M"],
+            ["BINANCE:DOGEUSD|1M"]
+        ]
     },
 
     // Required version of MagicMirror
@@ -41,41 +46,76 @@ Module.register("MMM-Crypto", {
         copyrightDiv.className = "tradingview-widget-copyright";
         
         const copyrightLink = document.createElement("a");
-        copyrightLink.href = "https://www.tradingview.com/symbols/BTCUSD/?exchange=BITSTAMP";
+        copyrightLink.href = "https://www.tradingview.com/markets/";
         copyrightLink.rel = "noopener nofollow";
         copyrightLink.target = "_blank";
         
         const linkSpan = document.createElement("span");
         linkSpan.className = "blue-text";
-        linkSpan.textContent = "Bitcoin price";
+        linkSpan.textContent = "World markets";
         copyrightLink.appendChild(linkSpan);
         
-        const trademarkSpan = document.createElement("span");
-        trademarkSpan.className = "trademark";
-        trademarkSpan.textContent = " by TradingView";
+        const trademarkText = document.createTextNode(" by TradingView");
         
         copyrightDiv.appendChild(copyrightLink);
-        copyrightDiv.appendChild(trademarkSpan);
+        copyrightDiv.appendChild(trademarkText);
         widgetContainer.appendChild(copyrightDiv);
 
         // Create and configure the script element
         const script = document.createElement("script");
         script.type = "text/javascript";
-        script.src = "https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js";
+        script.src = "https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js";
         script.async = true;
         
-        // Set the widget configuration
+        // Set the advanced widget configuration
         const config = {
-            "symbol": this.config.widgetSymbol,
-            "chartOnly": false,
-            "dateRange": "1D",
-            "noTimeScale": false,
+            "lineWidth": 2,
+            "lineType": 0,
+            "chartType": "candlesticks",
+            "showVolume": true,
+            "fontColor": "rgb(106, 109, 120)",
+            "gridLineColor": "rgba(242, 242, 242, 0.06)",
+            "volumeUpColor": "rgba(34, 171, 148, 0.5)",
+            "volumeDownColor": "rgba(247, 82, 95, 0.5)",
+            "backgroundColor": "rgba(200, 230, 201, 0)",
+            "widgetFontColor": "#DBDBDB",
+            "upColor": "rgba(255, 255, 255, 0)",
+            "downColor": "rgba(99, 99, 99, 1)",
+            "borderUpColor": "rgba(255, 255, 255, 1)",
+            "borderDownColor": "rgba(15, 15, 15, 0)",
+            "wickUpColor": "rgba(255, 255, 255, 1)",
+            "wickDownColor": "rgba(255, 255, 255, 1)",
             "colorTheme": this.config.widgetTheme,
-            "isTransparent": true,
+            "isTransparent": false,
             "locale": "en",
-            "width": "100%",
+            "chartOnly": false,
+            "scalePosition": "right",
+            "scaleMode": "Normal",
+            "fontFamily": "-apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif",
+            "valuesTracking": "1",
+            "changeMode": "price-and-percent",
+            "symbols": this.config.symbols,
+            "dateRanges": [
+                "1m|240",
+                "3m|1D",
+                "6m|1D"
+            ],
+            "fontSize": "10",
+            "headerFontSize": "medium",
             "autosize": true,
-            "height": "100%"
+            "dateFormat": "dd/MM/yyyy",
+            "width": "100%",
+            "height": "100%",
+            "noTimeScale": false,
+            "hideDateRanges": false,
+            "compareSymbol": {
+                "symbol": "TVC:DXY",
+                "lineColor": "rgba(242, 54, 69, 1)",
+                "lineWidth": 2,
+                "showLabels": true
+            },
+            "hideMarketStatus": false,
+            "hideSymbolLogo": false
         };
         
         script.textContent = JSON.stringify(config);
