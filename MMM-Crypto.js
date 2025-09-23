@@ -11,7 +11,7 @@ Module.register("MMM-Crypto", {
         showTradingViewWidget: true,
         widgetTheme: "dark",
         maxWidth: "100%",
-        height: "450px", // Reduced from 600px to 450px
+        height: "450px",
         symbols: [
             ["BINANCE:BTCUSD|1M"],
             ["BINANCE:SOLUSD|1M"],
@@ -26,7 +26,6 @@ Module.register("MMM-Crypto", {
     // Start the module
     start: function() {
         Log.info("Starting module: " + this.name);
-        this.loaded = false;
     },
 
     // Override dom generator
@@ -34,16 +33,13 @@ Module.register("MMM-Crypto", {
         const wrapper = document.createElement("div");
         wrapper.style.width = this.config.maxWidth;
         wrapper.style.height = this.config.height;
-        wrapper.style.minHeight = "400px"; // Reduced minimum height
-        wrapper.style.position = "relative";
+        wrapper.style.minHeight = "400px";
 
         // Create the TradingView widget container
         const widgetContainer = document.createElement("div");
         widgetContainer.className = "tradingview-widget-container";
         widgetContainer.style.height = "100%";
         widgetContainer.style.width = "100%";
-        widgetContainer.style.opacity = this.loaded ? "1" : "0";
-        widgetContainer.style.transition = "opacity 0.3s ease";
 
         // Create the widget div
         const widgetDiv = document.createElement("div");
@@ -55,7 +51,7 @@ Module.register("MMM-Crypto", {
         // Create the copyright div
         const copyrightDiv = document.createElement("div");
         copyrightDiv.className = "tradingview-widget-copyright";
-        copyrightDiv.style.fontSize = "12px"; // Slightly smaller font
+        copyrightDiv.style.fontSize = "12px";
         copyrightDiv.style.lineHeight = "32px";
         copyrightDiv.style.textAlign = "center";
         copyrightDiv.style.verticalAlign = "middle";
@@ -82,13 +78,13 @@ Module.register("MMM-Crypto", {
         copyrightDiv.appendChild(trademarkText);
         widgetContainer.appendChild(copyrightDiv);
 
-        // Create script element with proper configuration
+        // Create and configure the script element - BACK TO WORKING METHOD
         const script = document.createElement("script");
         script.type = "text/javascript";
         script.src = "https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js";
         script.async = true;
         
-        // Configuration object
+        // Configuration - using textContent which was working
         const config = {
             "lineWidth": 2,
             "lineType": 0,
@@ -139,18 +135,8 @@ Module.register("MMM-Crypto", {
             "hideSymbolLogo": false
         };
         
-        // CRITICAL FIX: Set the configuration as a data attribute instead of textContent
-        script.setAttribute('data-tradingview-config', JSON.stringify(config));
-        
-        // Alternative method: Create a separate script tag with the config
-        const configScript = document.createElement("script");
-        configScript.type = "text/javascript";
-        configScript.textContent = `
-            window.tradingViewConfig = ${JSON.stringify(config)};
-        `;
-        
-        // Append both scripts
-        widgetContainer.appendChild(configScript);
+        // Use textContent method that was working before
+        script.textContent = JSON.stringify(config);
         widgetContainer.appendChild(script);
 
         wrapper.appendChild(widgetContainer);
