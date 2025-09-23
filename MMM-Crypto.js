@@ -35,57 +35,8 @@ Module.register("MMM-Crypto", {
         wrapper.style.height = this.config.height;
         wrapper.style.minHeight = "400px";
 
-        // Create the TradingView widget container
-        const widgetContainer = document.createElement("div");
-        widgetContainer.className = "tradingview-widget-container";
-        widgetContainer.style.height = "100%";
-        widgetContainer.style.width = "100%";
-
-        // Create the widget div
-        const widgetDiv = document.createElement("div");
-        widgetDiv.className = "tradingview-widget-container__widget";
-        widgetDiv.style.height = "calc(100% - 32px)";
-        widgetDiv.style.width = "100%";
-        widgetContainer.appendChild(widgetDiv);
-
-        // Create the copyright div
-        const copyrightDiv = document.createElement("div");
-        copyrightDiv.className = "tradingview-widget-copyright";
-        copyrightDiv.style.fontSize = "12px";
-        copyrightDiv.style.lineHeight = "32px";
-        copyrightDiv.style.textAlign = "center";
-        copyrightDiv.style.verticalAlign = "middle";
-        copyrightDiv.style.fontFamily = "-apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif";
-        copyrightDiv.style.color = "#9db2bd";
-        
-        const copyrightLink = document.createElement("a");
-        copyrightLink.href = "https://www.tradingview.com/markets/";
-        copyrightLink.rel = "noopener nofollow";
-        copyrightLink.target = "_blank";
-        copyrightLink.style.color = "#9db2bd";
-        copyrightLink.style.textDecoration = "none";
-        copyrightLink.style.fontSize = "12px";
-        
-        const linkSpan = document.createElement("span");
-        linkSpan.className = "blue-text";
-        linkSpan.textContent = "World markets";
-        linkSpan.style.color = "#2962FF";
-        copyrightLink.appendChild(linkSpan);
-        
-        const trademarkText = document.createTextNode(" by TradingView");
-        
-        copyrightDiv.appendChild(copyrightLink);
-        copyrightDiv.appendChild(trademarkText);
-        widgetContainer.appendChild(copyrightDiv);
-
-        // Create and configure the script element - BACK TO WORKING METHOD
-        const script = document.createElement("script");
-        script.type = "text/javascript";
-        script.src = "https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js";
-        script.async = true;
-        
-        // Configuration - using textContent which was working
-        const config = {
+        // Create the exact HTML structure that TradingView expects
+        const configJson = JSON.stringify({
             "lineWidth": 2,
             "lineType": 0,
             "chartType": "candlesticks",
@@ -133,13 +84,35 @@ Module.register("MMM-Crypto", {
             },
             "hideMarketStatus": false,
             "hideSymbolLogo": false
-        };
-        
-        // Use textContent method that was working before
-        script.textContent = JSON.stringify(config);
-        widgetContainer.appendChild(script);
+        });
 
-        wrapper.appendChild(widgetContainer);
+        // Use innerHTML with the exact structure TradingView expects
+        wrapper.innerHTML = `
+            <div class="tradingview-widget-container" style="height: 100%; width: 100%;">
+                <div class="tradingview-widget-container__widget" style="height: calc(100% - 32px); width: 100%;"></div>
+                <div class="tradingview-widget-copyright" style="font-size: 12px; line-height: 32px; text-align: center; vertical-align: middle; font-family: -apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif; color: #9db2bd;">
+                    <a href="https://www.tradingview.com/markets/" rel="noopener nofollow" target="_blank" style="color: #9db2bd; text-decoration: none; font-size: 12px;">
+                        <span class="blue-text" style="color: #2962FF;">World markets</span>
+                    </a> by TradingView
+                </div>
+                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
+                ${configJson}
+                </script>
+            </div>
+        `;
+
+        // After setting innerHTML, we need to manually execute the script
+        setTimeout(() => {
+            const scripts = wrapper.querySelectorAll('script');
+            scripts.forEach(script => {
+                const newScript = document.createElement('script');
+                newScript.src = script.src;
+                newScript.async = script.async;
+                newScript.textContent = script.textContent;
+                script.parentNode.replaceChild(newScript, script);
+            });
+        }, 100);
+
         return wrapper;
     },
 
