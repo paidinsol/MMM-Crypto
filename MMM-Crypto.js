@@ -13,10 +13,10 @@ Module.register("MMM-Crypto", {
         maxWidth: "100%",
         height: "600px",
         symbols: [
-            ["BINANCE:BTCUSD", "Bitcoin"],
-            ["BINANCE:SOLUSD", "Solana"],
-            ["OANDA:XAUUSD", "Gold"],
-            ["BINANCE:DOGEUSD", "Dogecoin"]
+            ["BINANCE:BTCUSD|1M"],
+            ["BINANCE:SOLUSD|1M"],
+            ["OANDA:XAUUSD|1M"],
+            ["BINANCE:DOGEUSD|1M"]
         ]
     },
 
@@ -78,47 +78,61 @@ Module.register("MMM-Crypto", {
         copyrightDiv.appendChild(trademarkText);
         widgetContainer.appendChild(copyrightDiv);
 
-        // Create and configure the script element for SYMBOL OVERVIEW (supports multiple symbols)
+        // Create and configure the script element
         const script = document.createElement("script");
         script.type = "text/javascript";
         script.src = "https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js";
         script.async = true;
         
-        // Multi-symbol configuration with advanced chart features
+        // Your exact configuration with candlesticks and custom colors
         const config = {
-            "symbols": this.config.symbols,
-            "chartOnly": false,
-            "width": "100%",
-            "height": "100%",
-            "locale": "en",
+            "lineWidth": 2,
+            "lineType": 0,
+            "chartType": "candlesticks",
+            "showVolume": true,
+            "fontColor": "rgb(106, 109, 120)",
+            "gridLineColor": "rgba(242, 242, 242, 0.06)",
+            "volumeUpColor": "rgba(34, 171, 148, 0.5)",
+            "volumeDownColor": "rgba(247, 82, 95, 0.5)",
+            "backgroundColor": "rgba(200, 230, 201, 0)",
+            "widgetFontColor": "#DBDBDB",
+            "upColor": "rgba(255, 255, 255, 0)",
+            "downColor": "rgba(99, 99, 99, 1)",
+            "borderUpColor": "rgba(255, 255, 255, 1)",
+            "borderDownColor": "rgba(15, 15, 15, 0)",
+            "wickUpColor": "rgba(255, 255, 255, 1)",
+            "wickDownColor": "rgba(255, 255, 255, 1)",
             "colorTheme": this.config.widgetTheme,
-            "autosize": true,
-            "showVolume": false,
-            "showMA": false,
-            "hideDateRanges": false,
-            "hideMarketStatus": false,
-            "hideSymbolLogo": false,
+            "isTransparent": false,
+            "locale": "en",
+            "chartOnly": false,
             "scalePosition": "right",
             "scaleMode": "Normal",
             "fontFamily": "-apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif",
-            "fontSize": "10",
-            "noTimeScale": false,
             "valuesTracking": "1",
             "changeMode": "price-and-percent",
-            "chartType": "area",
-            "maLineColor": "#2962FF",
-            "maLineWidth": 1,
-            "maLength": 9,
-            "lineWidth": 2,
-            "lineType": 0,
+            "symbols": this.config.symbols,
             "dateRanges": [
-                "1d|1",
-                "1m|30",
-                "3m|60",
-                "12m|1D",
-                "60m|1W",
-                "all|1M"
-            ]
+                "1m|240",
+                "3m|1D",
+                "6m|1D"
+            ],
+            "fontSize": "10",
+            "headerFontSize": "medium",
+            "autosize": true,
+            "dateFormat": "dd/MM/yyyy",
+            "width": "100%",
+            "height": "100%",
+            "noTimeScale": false,
+            "hideDateRanges": false,
+            "compareSymbol": {
+                "symbol": "TVC:DXY",
+                "lineColor": "rgba(242, 54, 69, 1)",
+                "lineWidth": 2,
+                "showLabels": true
+            },
+            "hideMarketStatus": false,
+            "hideSymbolLogo": false
         };
         
         script.textContent = JSON.stringify(config);
