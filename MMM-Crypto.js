@@ -11,7 +11,7 @@ Module.register("MMM-Crypto", {
         showTradingViewWidget: true,
         widgetTheme: "dark",
         maxWidth: "100%",
-        height: "600px",
+        height: "450px", // Reduced from 600px to 450px
         symbols: [
             ["BINANCE:BTCUSD|1M"],
             ["BINANCE:SOLUSD|1M"],
@@ -26,6 +26,7 @@ Module.register("MMM-Crypto", {
     // Start the module
     start: function() {
         Log.info("Starting module: " + this.name);
+        this.loaded = false;
     },
 
     // Override dom generator
@@ -33,13 +34,31 @@ Module.register("MMM-Crypto", {
         const wrapper = document.createElement("div");
         wrapper.style.width = this.config.maxWidth;
         wrapper.style.height = this.config.height;
-        wrapper.style.minHeight = "500px";
+        wrapper.style.minHeight = "400px"; // Reduced minimum height
+        wrapper.style.position = "relative";
+
+        // Create loading indicator
+        if (!this.loaded) {
+            const loadingDiv = document.createElement("div");
+            loadingDiv.id = "crypto-loading";
+            loadingDiv.style.position = "absolute";
+            loadingDiv.style.top = "50%";
+            loadingDiv.style.left = "50%";
+            loadingDiv.style.transform = "translate(-50%, -50%)";
+            loadingDiv.style.color = "#fff";
+            loadingDiv.style.fontSize = "16px";
+            loadingDiv.style.zIndex = "1000";
+            loadingDiv.innerHTML = "Loading TradingView widget...";
+            wrapper.appendChild(loadingDiv);
+        }
 
         // Create the TradingView widget container
         const widgetContainer = document.createElement("div");
         widgetContainer.className = "tradingview-widget-container";
         widgetContainer.style.height = "100%";
         widgetContainer.style.width = "100%";
+        widgetContainer.style.opacity = this.loaded ? "1" : "0";
+        widgetContainer.style.transition = "opacity 0.3s ease";
 
         // Create the widget div
         const widgetDiv = document.createElement("div");
@@ -51,7 +70,7 @@ Module.register("MMM-Crypto", {
         // Create the copyright div
         const copyrightDiv = document.createElement("div");
         copyrightDiv.className = "tradingview-widget-copyright";
-        copyrightDiv.style.fontSize = "13px";
+        copyrightDiv.style.fontSize = "12px"; // Slightly smaller font
         copyrightDiv.style.lineHeight = "32px";
         copyrightDiv.style.textAlign = "center";
         copyrightDiv.style.verticalAlign = "middle";
@@ -64,7 +83,7 @@ Module.register("MMM-Crypto", {
         copyrightLink.target = "_blank";
         copyrightLink.style.color = "#9db2bd";
         copyrightLink.style.textDecoration = "none";
-        copyrightLink.style.fontSize = "13px";
+        copyrightLink.style.fontSize = "12px";
         
         const linkSpan = document.createElement("span");
         linkSpan.className = "blue-text";
@@ -84,7 +103,19 @@ Module.register("MMM-Crypto", {
         script.src = "https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js";
         script.async = true;
         
-        // Your exact configuration with candlesticks and custom colors
+        // Add load event listener to hide loading message
+        script.onload = () => {
+            setTimeout(() => {
+                this.loaded = true;
+                const loadingElement = document.getElementById("crypto-loading");
+                if (loadingElement) {
+                    loadingElement.style.display = "none";
+                }
+                widgetContainer.style.opacity = "1";
+            }, 2000); // Wait 2 seconds for widget to fully initialize
+        };
+        
+        // Configuration with smaller but readable sizing
         const config = {
             "lineWidth": 2,
             "lineType": 0,
