@@ -12,6 +12,7 @@ Module.register("MMM-Crypto", {
         widgetTheme: "dark",
         maxWidth: "100%",
         height: "450px",
+        autoSwitchInterval: 40000, // 40 seconds in milliseconds
         symbols: [
             ["BINANCE:BTCUSD|1M"],
             ["BINANCE:SOLUSD|1M"],
@@ -26,17 +27,32 @@ Module.register("MMM-Crypto", {
     // Start the module
     start: function() {
         Log.info("Starting module: " + this.name);
+        this.currentSymbolIndex = 0;
+        this.autoSwitchTimer = null;
+        this.startAutoSwitch();
     },
 
     // Override dom generator
     getDom: function() {
         const wrapper = document.createElement("div");
+        wrapper.className = "mmm-crypto-wrapper";
         wrapper.style.width = this.config.maxWidth;
         wrapper.style.height = this.config.height;
         wrapper.style.minHeight = "400px";
 
-        // Create the exact HTML structure that TradingView expects
-        const configJson = JSON.stringify({
+        this.updateWidget(wrapper);
+        return wrapper;
+    },
+
+    updateWidget: function(container) {
+        // Get current symbol
+        const currentSymbol = this.config.symbols[this.currentSymbolIndex];
+        
+        // Clear existing content
+        container.innerHTML = '';
+
+        // Create the widget configuration with current symbol
+        const widgetConfig = {
             "lineWidth": 2,
             "lineType": 0,
             "chartType": "candlesticks",
@@ -62,7 +78,7 @@ Module.register("MMM-Crypto", {
             "fontFamily": "-apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif",
             "valuesTracking": "1",
             "changeMode": "price-and-percent",
-            "symbols": this.config.symbols,
+            "symbols": [currentSymbol], // Only show current symbol
             "dateRanges": [
                 "1m|240",
                 "3m|1D",
@@ -80,14 +96,14 @@ Module.register("MMM-Crypto", {
                 "symbol": "TVC:DXY",
                 "lineColor": "rgba(242, 54, 69, 1)",
                 "lineWidth": 2,
-                "showLabels": true
+                "showLabels": false
             },
             "hideMarketStatus": false,
             "hideSymbolLogo": false
-        });
+        };
 
-        // Use innerHTML with the exact structure TradingView expects
-        wrapper.innerHTML = `
+        // Use the exact HTML structure you provided
+        container.innerHTML = `
             <div class="tradingview-widget-container" style="height: 100%; width: 100%;">
                 <div class="tradingview-widget-container__widget" style="height: calc(100% - 32px); width: 100%;"></div>
                 <div class="tradingview-widget-copyright" style="font-size: 12px; line-height: 32px; text-align: center; vertical-align: middle; font-family: -apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif; color: #9db2bd;">
@@ -96,14 +112,14 @@ Module.register("MMM-Crypto", {
                     </a> by TradingView
                 </div>
                 <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
-                ${configJson}
+                ${JSON.stringify(widgetConfig)}
                 </script>
             </div>
         `;
 
-        // After setting innerHTML, we need to manually execute the script
+        // Execute the script manually to ensure it loads
         setTimeout(() => {
-            const scripts = wrapper.querySelectorAll('script');
+            const scripts = container.querySelectorAll('script');
             scripts.forEach(script => {
                 const newScript = document.createElement('script');
                 newScript.src = script.src;
@@ -112,8 +128,41 @@ Module.register("MMM-Crypto", {
                 script.parentNode.replaceChild(newScript, script);
             });
         }, 100);
+    },
 
-        return wrapper;
+    startAutoSwitch: function() {
+        // Clear any existing timer
+        if (this.autoSwitchTimer) {
+            clearInterval(this.autoSwitchTimer);
+        }
+
+        // Set up auto-switching every 40 seconds
+        this.autoSwitchTimer = setInterval(() => {
+            this.switchToNextSymbol();
+        }, this.config.autoSwitchInterval);
+    },
+
+    switchToNextSymbol: function() {
+        // Move to next symbol (cycle through the array)
+        this.currentSymbolIndex = (this.currentSymbolIndex + 1) % this.config.symbols.length;
+        
+        // Update the DOM
+        this.updateDom();
+        
+        Log.info(`MMM-Crypto: Switched to symbol ${this.config.symbols[this.currentSymbolIndex][0]}`);
+    },
+
+    suspend: function() {
+        // Clear timer when module is suspended
+        if (this.autoSwitchTimer) {
+            clearInterval(this.autoSwitchTimer);
+            this.autoSwitchTimer = null;
+        }
+    },
+
+    resume: function() {
+        // Restart timer when module is resumed
+        this.startAutoSwitch();
     },
 
     // Define required styles
