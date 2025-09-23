@@ -10,12 +10,13 @@ Module.register("MMM-Crypto", {
     defaults: {
         showTradingViewWidget: true,
         widgetTheme: "dark",
-        maxWidth: "800px",
+        maxWidth: "100%",
+        height: "600px",
         symbols: [
-            ["BINANCE:BTCUSD|1M"],
-            ["BINANCE:SOLUSD|1M"],
-            ["OANDA:XAUUSD|1M"],
-            ["BINANCE:DOGEUSD|1M"]
+            ["BINANCE:BTCUSD", "Bitcoin"],
+            ["BINANCE:SOLUSD", "Solana"],
+            ["OANDA:XAUUSD", "Gold"],
+            ["BINANCE:DOGEUSD", "Dogecoin"]
         ]
     },
 
@@ -30,29 +31,45 @@ Module.register("MMM-Crypto", {
     // Override dom generator
     getDom: function() {
         const wrapper = document.createElement("div");
-        wrapper.style.maxWidth = this.config.maxWidth;
+        wrapper.style.width = this.config.maxWidth;
+        wrapper.style.height = this.config.height;
+        wrapper.style.minHeight = "500px";
 
         // Create the TradingView widget container
         const widgetContainer = document.createElement("div");
         widgetContainer.className = "tradingview-widget-container";
+        widgetContainer.style.height = "100%";
+        widgetContainer.style.width = "100%";
 
         // Create the widget div
         const widgetDiv = document.createElement("div");
         widgetDiv.className = "tradingview-widget-container__widget";
+        widgetDiv.style.height = "calc(100% - 32px)";
+        widgetDiv.style.width = "100%";
         widgetContainer.appendChild(widgetDiv);
 
         // Create the copyright div
         const copyrightDiv = document.createElement("div");
         copyrightDiv.className = "tradingview-widget-copyright";
+        copyrightDiv.style.fontSize = "13px";
+        copyrightDiv.style.lineHeight = "32px";
+        copyrightDiv.style.textAlign = "center";
+        copyrightDiv.style.verticalAlign = "middle";
+        copyrightDiv.style.fontFamily = "-apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif";
+        copyrightDiv.style.color = "#9db2bd";
         
         const copyrightLink = document.createElement("a");
         copyrightLink.href = "https://www.tradingview.com/markets/";
         copyrightLink.rel = "noopener nofollow";
         copyrightLink.target = "_blank";
+        copyrightLink.style.color = "#9db2bd";
+        copyrightLink.style.textDecoration = "none";
+        copyrightLink.style.fontSize = "13px";
         
         const linkSpan = document.createElement("span");
         linkSpan.className = "blue-text";
         linkSpan.textContent = "World markets";
+        linkSpan.style.color = "#2962FF";
         copyrightLink.appendChild(linkSpan);
         
         const trademarkText = document.createTextNode(" by TradingView");
@@ -61,61 +78,47 @@ Module.register("MMM-Crypto", {
         copyrightDiv.appendChild(trademarkText);
         widgetContainer.appendChild(copyrightDiv);
 
-        // Create and configure the script element
+        // Create and configure the script element for SYMBOL OVERVIEW (supports multiple symbols)
         const script = document.createElement("script");
         script.type = "text/javascript";
         script.src = "https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js";
         script.async = true;
         
-        // Set the advanced widget configuration
+        // Multi-symbol configuration with advanced chart features
         const config = {
-            "lineWidth": 2,
-            "lineType": 0,
-            "chartType": "candlesticks",
-            "showVolume": true,
-            "fontColor": "rgb(106, 109, 120)",
-            "gridLineColor": "rgba(242, 242, 242, 0.06)",
-            "volumeUpColor": "rgba(34, 171, 148, 0.5)",
-            "volumeDownColor": "rgba(247, 82, 95, 0.5)",
-            "backgroundColor": "rgba(200, 230, 201, 0)",
-            "widgetFontColor": "#DBDBDB",
-            "upColor": "rgba(255, 255, 255, 0)",
-            "downColor": "rgba(99, 99, 99, 1)",
-            "borderUpColor": "rgba(255, 255, 255, 1)",
-            "borderDownColor": "rgba(15, 15, 15, 0)",
-            "wickUpColor": "rgba(255, 255, 255, 1)",
-            "wickDownColor": "rgba(255, 255, 255, 1)",
-            "colorTheme": this.config.widgetTheme,
-            "isTransparent": false,
-            "locale": "en",
+            "symbols": this.config.symbols,
             "chartOnly": false,
+            "width": "100%",
+            "height": "100%",
+            "locale": "en",
+            "colorTheme": this.config.widgetTheme,
+            "autosize": true,
+            "showVolume": false,
+            "showMA": false,
+            "hideDateRanges": false,
+            "hideMarketStatus": false,
+            "hideSymbolLogo": false,
             "scalePosition": "right",
             "scaleMode": "Normal",
             "fontFamily": "-apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif",
+            "fontSize": "10",
+            "noTimeScale": false,
             "valuesTracking": "1",
             "changeMode": "price-and-percent",
-            "symbols": this.config.symbols,
+            "chartType": "area",
+            "maLineColor": "#2962FF",
+            "maLineWidth": 1,
+            "maLength": 9,
+            "lineWidth": 2,
+            "lineType": 0,
             "dateRanges": [
-                "1m|240",
-                "3m|1D",
-                "6m|1D"
-            ],
-            "fontSize": "10",
-            "headerFontSize": "medium",
-            "autosize": true,
-            "dateFormat": "dd/MM/yyyy",
-            "width": "100%",
-            "height": "100%",
-            "noTimeScale": false,
-            "hideDateRanges": false,
-            "compareSymbol": {
-                "symbol": "TVC:DXY",
-                "lineColor": "rgba(242, 54, 69, 1)",
-                "lineWidth": 2,
-                "showLabels": true
-            },
-            "hideMarketStatus": false,
-            "hideSymbolLogo": false
+                "1d|1",
+                "1m|30",
+                "3m|60",
+                "12m|1D",
+                "60m|1W",
+                "all|1M"
+            ]
         };
         
         script.textContent = JSON.stringify(config);
