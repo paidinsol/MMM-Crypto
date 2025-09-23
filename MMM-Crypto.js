@@ -27,35 +27,61 @@ Module.register("MMM-Crypto", {
         const wrapper = document.createElement("div");
         wrapper.style.maxWidth = this.config.maxWidth;
 
-        // Use the exact TradingView widget HTML you provided
-        wrapper.innerHTML = `
-            <!-- TradingView Widget BEGIN -->
-            <div class="tradingview-widget-container">
-                <div class="tradingview-widget-container__widget"></div>
-                <div class="tradingview-widget-copyright">
-                    <a href="https://www.tradingview.com/symbols/BTCUSD/?exchange=BITSTAMP" rel="noopener nofollow" target="_blank">
-                        <span class="blue-text">Bitcoin price</span>
-                    </a>
-                    <span class="trademark"> by TradingView</span>
-                </div>
-                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
-                {
-                    "symbol": "${this.config.widgetSymbol}",
-                    "chartOnly": false,
-                    "dateRange": "1D",
-                    "noTimeScale": false,
-                    "colorTheme": "${this.config.widgetTheme}",
-                    "isTransparent": true,
-                    "locale": "en",
-                    "width": "100%",
-                    "autosize": true,
-                    "height": "100%"
-                }
-                </script>
-            </div>
-            <!-- TradingView Widget END -->
-        `;
+        // Create the TradingView widget container
+        const widgetContainer = document.createElement("div");
+        widgetContainer.className = "tradingview-widget-container";
 
+        // Create the widget div
+        const widgetDiv = document.createElement("div");
+        widgetDiv.className = "tradingview-widget-container__widget";
+        widgetContainer.appendChild(widgetDiv);
+
+        // Create the copyright div
+        const copyrightDiv = document.createElement("div");
+        copyrightDiv.className = "tradingview-widget-copyright";
+        
+        const copyrightLink = document.createElement("a");
+        copyrightLink.href = "https://www.tradingview.com/symbols/BTCUSD/?exchange=BITSTAMP";
+        copyrightLink.rel = "noopener nofollow";
+        copyrightLink.target = "_blank";
+        
+        const linkSpan = document.createElement("span");
+        linkSpan.className = "blue-text";
+        linkSpan.textContent = "Bitcoin price";
+        copyrightLink.appendChild(linkSpan);
+        
+        const trademarkSpan = document.createElement("span");
+        trademarkSpan.className = "trademark";
+        trademarkSpan.textContent = " by TradingView";
+        
+        copyrightDiv.appendChild(copyrightLink);
+        copyrightDiv.appendChild(trademarkSpan);
+        widgetContainer.appendChild(copyrightDiv);
+
+        // Create and configure the script element
+        const script = document.createElement("script");
+        script.type = "text/javascript";
+        script.src = "https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js";
+        script.async = true;
+        
+        // Set the widget configuration
+        const config = {
+            "symbol": this.config.widgetSymbol,
+            "chartOnly": false,
+            "dateRange": "1D",
+            "noTimeScale": false,
+            "colorTheme": this.config.widgetTheme,
+            "isTransparent": true,
+            "locale": "en",
+            "width": "100%",
+            "autosize": true,
+            "height": "100%"
+        };
+        
+        script.textContent = JSON.stringify(config);
+        widgetContainer.appendChild(script);
+
+        wrapper.appendChild(widgetContainer);
         return wrapper;
     },
 
