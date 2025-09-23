@@ -37,21 +37,6 @@ Module.register("MMM-Crypto", {
         wrapper.style.minHeight = "400px"; // Reduced minimum height
         wrapper.style.position = "relative";
 
-        // Create loading indicator
-        if (!this.loaded) {
-            const loadingDiv = document.createElement("div");
-            loadingDiv.id = "crypto-loading";
-            loadingDiv.style.position = "absolute";
-            loadingDiv.style.top = "50%";
-            loadingDiv.style.left = "50%";
-            loadingDiv.style.transform = "translate(-50%, -50%)";
-            loadingDiv.style.color = "#fff";
-            loadingDiv.style.fontSize = "16px";
-            loadingDiv.style.zIndex = "1000";
-            loadingDiv.innerHTML = "Loading TradingView widget...";
-            wrapper.appendChild(loadingDiv);
-        }
-
         // Create the TradingView widget container
         const widgetContainer = document.createElement("div");
         widgetContainer.className = "tradingview-widget-container";
@@ -97,25 +82,13 @@ Module.register("MMM-Crypto", {
         copyrightDiv.appendChild(trademarkText);
         widgetContainer.appendChild(copyrightDiv);
 
-        // Create and configure the script element
+        // Create script element with proper configuration
         const script = document.createElement("script");
         script.type = "text/javascript";
         script.src = "https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js";
         script.async = true;
         
-        // Add load event listener to hide loading message
-        script.onload = () => {
-            setTimeout(() => {
-                this.loaded = true;
-                const loadingElement = document.getElementById("crypto-loading");
-                if (loadingElement) {
-                    loadingElement.style.display = "none";
-                }
-                widgetContainer.style.opacity = "1";
-            }, 2000); // Wait 2 seconds for widget to fully initialize
-        };
-        
-        // Configuration with smaller but readable sizing
+        // Configuration object
         const config = {
             "lineWidth": 2,
             "lineType": 0,
@@ -166,7 +139,18 @@ Module.register("MMM-Crypto", {
             "hideSymbolLogo": false
         };
         
-        script.textContent = JSON.stringify(config);
+        // CRITICAL FIX: Set the configuration as a data attribute instead of textContent
+        script.setAttribute('data-tradingview-config', JSON.stringify(config));
+        
+        // Alternative method: Create a separate script tag with the config
+        const configScript = document.createElement("script");
+        configScript.type = "text/javascript";
+        configScript.textContent = `
+            window.tradingViewConfig = ${JSON.stringify(config)};
+        `;
+        
+        // Append both scripts
+        widgetContainer.appendChild(configScript);
         widgetContainer.appendChild(script);
 
         wrapper.appendChild(widgetContainer);
